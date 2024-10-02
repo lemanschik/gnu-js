@@ -1,10 +1,16 @@
-import require$$1 from 'fs';
+import fs from 'fs';
 import require$$0 from 'os';
-import require$$2 from 'path';
+import path from 'path';
 import require$$0$1 from 'util';
 import require$$5 from 'child_process';
 import require$$3 from 'events';
 import require$$5$1 from 'assert';
+
+// Fixes:
+
+
+
+
 //@
 //@ ### error()
 //@
@@ -40,8 +46,8 @@ let hasRequiredCat;
 function requireCat () {
 	if (hasRequiredCat) return cat;
 	hasRequiredCat = 1;
-	const common = requireCommon();
-	const fs = require$$1;
+	const common = requireCommonExports();
+	
 
 	common.register('cat', _cat, {
 	  canReceivePipe: true,
@@ -127,7 +133,7 @@ function requireCd () {
 	if (hasRequiredCd) return cd;
 	hasRequiredCd = 1;
 	const os = require$$0;
-	const common = requireCommon();
+	const common = requireCommonExports();
 
 	common.register('cd', _cd, {});
 
@@ -176,23 +182,22 @@ let hasRequiredChmod;
 function requireChmod () {
 	if (hasRequiredChmod) return chmod;
 	hasRequiredChmod = 1;
-	const common = requireCommon();
-	const fs = require$$1;
-	const path = require$$2;
+	const common = requireCommonExports();
+	
+	
 
-	const PERMS = (({EXEC, WRITE, READ}) => {
-	  return {
-	    OTHER_EXEC: EXEC,
-	    OTHER_WRITE: WRITE,
-	    OTHER_READ: READ,
+	const PERMS = {
+	    OTHER_EXEC: 1,
+	    OTHER_WRITE: 2,
+	    OTHER_READ: 4,
 
-	    GROUP_EXEC: EXEC << 3,
-	    GROUP_WRITE: WRITE << 3,
-	    GROUP_READ: READ << 3,
+	    GROUP_EXEC: 1 << 3,
+	    GROUP_WRITE: 2 << 3,
+	    GROUP_READ: 4 << 3,
 
-	    OWNER_EXEC: EXEC << 6,
-	    OWNER_WRITE: WRITE << 6,
-	    OWNER_READ: READ << 6,
+	    OWNER_EXEC: 1 << 6,
+	    OWNER_WRITE: 2 << 6,
+	    OWNER_READ: 4 << 6,
 
 	    // Literal octal numbers are apparently not allowed in "strict" javascript.
 	    STICKY: parseInt('01000', 8),
@@ -200,12 +205,7 @@ function requireChmod () {
 	    SETUID: parseInt('04000', 8),
 
 	    TYPE_MASK: parseInt('0770000', 8),
-	  };
-	})({
-	  EXEC: 1,
-	  WRITE: 2,
-	  READ: 4,
-	});
+	};
 
 	common.register('chmod', _chmod, {
 	});
@@ -408,9 +408,9 @@ let hasRequiredCp;
 function requireCp () {
 	if (hasRequiredCp) return cp;
 	hasRequiredCp = 1;
-	const fs = require$$1;
-	const path = require$$2;
-	const common = requireCommon();
+	
+	
+	const common = requireCommonExports();
 
 	common.register('cp', _cp, {
 	  cmdOptions: {
@@ -733,9 +733,9 @@ let hasRequiredDirs;
 function requireDirs () {
 	if (hasRequiredDirs) return dirs;
 	hasRequiredDirs = 1;
-	const common = requireCommon();
+	const common = requireCommonExports();
 	const _cd = requireCd();
-	const path = require$$2;
+	
 
 	common.register('dirs', _dirs, {
 	  wrapOutput: false,
@@ -955,7 +955,7 @@ function requireEcho () {
 	hasRequiredEcho = 1;
 	const format = require$$0$1.format;
 
-	const common = requireCommon();
+	const common = requireCommonExports();
 
 	common.register('echo', _echo, {
 	  allowGlobbing: false,
@@ -1026,9 +1026,9 @@ let hasRequiredTempdir;
 function requireTempdir () {
 	if (hasRequiredTempdir) return tempdir;
 	hasRequiredTempdir = 1;
-	const common = requireCommon();
+	const common = requireCommonExports();
 	const os = require$$0;
-	const fs = require$$1;
+	
 
 	common.register('tempdir', _tempDir, {
 	  allowGlobbing: false,
@@ -1111,8 +1111,8 @@ let hasRequiredPwd;
 function requirePwd () {
 	if (hasRequiredPwd) return pwd;
 	hasRequiredPwd = 1;
-	const path = require$$2;
-	const common = requireCommon();
+	
+	const common = requireCommonExports();
 
 	common.register('pwd', _pwd, {
 	  allowGlobbing: false,
@@ -1137,11 +1137,11 @@ let hasRequiredExec;
 function requireExec () {
 	if (hasRequiredExec) return exec;
 	hasRequiredExec = 1;
-	const common = requireCommon();
+	const common = requireCommonExports();
 	const _tempDir = requireTempdir().tempDir;
 	const _pwd = requirePwd();
-	const path = require$$2;
-	const fs = require$$1;
+	
+	
 	const child = require$$5;
 
 	const DEFAULT_MAXBUFFER_SIZE = 20 * 1024 * 1024;
@@ -1422,9 +1422,9 @@ function requireOld () {
 	// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 	// USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-	const pathModule = require$$2;
+	
 	const isWindows = process.platform === 'win32';
-	const fs = require$$1;
+	
 
 	// JavaScript implementation of realpath, ported from node pre-v6
 
@@ -1721,7 +1721,7 @@ function requireFs_realpath () {
 	realpath.monkeypatch = monkeypatch;
 	realpath.unmonkeypatch = unmonkeypatch;
 
-	const fs = require$$1;
+	
 	const origRealpath = fs.realpath;
 	const origRealpathSync = fs.realpathSync;
 
@@ -3104,14 +3104,10 @@ function requireInherits () {
 	return inherits.exports;
 }
 
-const pathIsAbsolute = {exports: {}};
-
-let hasRequiredPathIsAbsolute;
 
 // ==> PathIsAbsolute () {
-function requirePathIsAbsolute () {
-	if (hasRequiredPathIsAbsolute) return pathIsAbsolute.exports;
-	hasRequiredPathIsAbsolute = 1;
+const pathIsAbsolute = (function requirePathIsAbsolute () {
+
 
 	function posix(path) {
 		return path.charAt(0) === '/';
@@ -3128,36 +3124,24 @@ function requirePathIsAbsolute () {
 		return Boolean(result[2] || isUnc);
 	}
 
-	pathIsAbsolute.exports = process.platform === 'win32' ? win32 : posix;
-	pathIsAbsolute.exports.posix = posix;
-	pathIsAbsolute.exports.win32 = win32;
-	return pathIsAbsolute.exports;
-}
+	return Object.assign(process.platform === 'win32' ? win32 : posix,{posix,win32});
+	
+})();
 
-const common$1 = {};
-
-let hasRequiredCommon$1;
-
+// default shared common state maybe
 // ==> Common$1 () {
-function requireCommon$1 () {
-	if (hasRequiredCommon$1) return common$1;
-	hasRequiredCommon$1 = 1;
-	common$1.setopts = setopts;
-	common$1.ownProp = ownProp;
-	common$1.makeAbs = makeAbs;
-	common$1.finish = finish;
-	common$1.mark = mark;
-	common$1.isIgnored = isIgnored;
-	common$1.childrenIgnored = childrenIgnored;
+const common$1 = (function requireCommon$1 () {
+
+	
 
 	function ownProp (obj, field) {
 	  return Object.prototype.hasOwnProperty.call(obj, field)
 	}
 
-	const fs = require$$1;
-	const path = require$$2;
+	
+	
 	const minimatch = requireMinimatch();
-	const isAbsolute = requirePathIsAbsolute();
+	const isAbsolute = pathIsAbsolute;
 	const Minimatch = minimatch.Minimatch;
 
 	function alphasort (a, b) {
@@ -3380,8 +3364,16 @@ function requireCommon$1 () {
 	    return !!(gmatcher && gmatcher.match(path));
 	  });
 	}
-	return common$1;
-}
+	return { 
+		setopts,
+		ownProp,
+		makeAbs,
+		finish,
+		mark,
+		isIgnored,
+		childrenIgnored,
+	};
+})();
 
 let sync;
 let hasRequiredSync;
@@ -3397,10 +3389,10 @@ function requireSync () {
   const minimatch = requireMinimatch();
   minimatch.Minimatch;
   requireGlob().Glob;
-  const path = require$$2;
+  
   const assert = require$$5$1;
-  const isAbsolute = requirePathIsAbsolute();
-  const common = requireCommon$1();
+  const isAbsolute = pathIsAbsolute;
+  const common = common$1();
   const setopts = common.setopts;
   const ownProp = common.ownProp;
   const childrenIgnored = common.childrenIgnored;
@@ -4087,11 +4079,11 @@ function requireGlob () {
   minimatch.Minimatch;
   const inherits = requireInherits();
   const EE = require$$3.EventEmitter;
-  const path = require$$2;
+  
   const assert = require$$5$1;
-  const isAbsolute = requirePathIsAbsolute();
+  const isAbsolute = pathIsAbsolute;
   const globSync = requireSync();
-  const common = requireCommon$1();
+  const common = common$1();
   const setopts = common.setopts;
   const ownProp = common.ownProp;
   const inflight = requireInflight();
@@ -4840,9 +4832,9 @@ let hasRequiredLs;
 function requireLs () {
 	if (hasRequiredLs) return ls;
 	hasRequiredLs = 1;
-	const path = require$$2;
-	const fs = require$$1;
-	const common = requireCommon();
+	
+	
+	const common = requireCommonExports();
 	const glob = requireGlob();
 
 	// glob patterns use the UNIX path seperator
@@ -4998,8 +4990,8 @@ let hasRequiredFind;
 function requireFind () {
 	if (hasRequiredFind) return find;
 	hasRequiredFind = 1;
-	const path = require$$2;
-	const common = requireCommon();
+	
+	const common = requireCommonExports();
 	const _ls = requireLs();
 
 	common.register('find', _find, {
@@ -5068,26 +5060,14 @@ function requireFind () {
 }
 
 let grep;
-let hasRequiredGrep;
+
 
 // ==> Grep () {
 function requireGrep () {
-	if (hasRequiredGrep) return grep;
-	hasRequiredGrep = 1;
-	const common = requireCommon();
-	const fs = require$$1;
-
-	common.register('grep', _grep, {
-	  globStart: 2, // don't glob-expand the regex
-	  canReceivePipe: true,
-	  cmdOptions: {
-	    'v': 'inverse',
-	    'l': 'nameOnly',
-	    'i': 'ignoreCase',
-	    'n': 'lineNumber',
-	  },
-	});
-
+	if (grep) {
+		return grep;
+	}
+	const common = requireCommonExports();
 	//@
 	//@ ### grep([options,] regex_filter, file [, file ...])
 	//@ ### grep([options,] regex_filter, file_array)
@@ -5110,52 +5090,68 @@ function requireGrep () {
 	//@ [ShellString](#shellstringstr) containing all lines of the @ file that match
 	//@ the given `regex_filter`.
 	function _grep({ignoreCase, nameOnly, inverse, lineNumber}, regex, files) {
-	  // Check if this is coming from a pipe
-	  const pipe = common.readFromPipe();
+		// Check if this is coming from a pipe
+		const pipe = common.readFromPipe();
 
-	  if (!files && !pipe) common.error('no paths given', 2);
+		if (!files && !pipe) common.error('no paths given', 2);
 
-	  files = [].slice.call(arguments, 2);
+		files = [].slice.call(arguments, 2);
 
-	  if (pipe) {
-	    files.unshift('-');
-	  }
+		if (pipe) {
+			files.unshift('-');
+		}
 
-	  const grep = [];
-	  if (ignoreCase) {
-	    regex = new RegExp(regex, 'i');
-	  }
-	  files.forEach(file => {
-	    if (!fs.existsSync(file) && file !== '-') {
-	      common.error(`no such file or directory: ${file}`, 2, { continue: true });
-	      return;
-	    }
+		const grep = [];
+		if (ignoreCase) {
+			regex = new RegExp(regex, 'i');
+		}
+		files.forEach(file => {
+			if (!fs.existsSync(file) && file !== '-') {
+			common.error(`no such file or directory: ${file}`, 2, { continue: true });
+			return;
+			}
 
-	    const contents = file === '-' ? pipe : fs.readFileSync(file, 'utf8');
-	    if (nameOnly) {
-	      if (contents.match(regex)) {
-	        grep.push(file);
-	      }
-	    } else {
-	      const lines = contents.split('\n');
-	      lines.forEach((line, index) => {
-	        const matched = line.match(regex);
-	        if ((inverse && !matched) || (!inverse && matched)) {
-	          let result = line;
-	          if (lineNumber) {
-	            result = `${index + 1}:${line}`;
-	          }
-	          grep.push(result);
-	        }
-	      });
-	    }
-	  });
+			const contents = file === '-' ? pipe : fs.readFileSync(file, 'utf8');
+			if (nameOnly) {
+			if (contents.match(regex)) {
+				grep.push(file);
+			}
+			} else {
+				const lines = contents.split('\n');
+				lines.forEach((line, index) => {
+					const matched = line.match(regex);
+					if ((inverse && !matched) || (!inverse && matched)) {
+					let result = line;
+					if (lineNumber) {
+						result = `${index + 1}:${line}`;
+					}
+					grep.push(result);
+					}
+				});
+			}
+		});
 
-	  if (grep.length === 0 && common.state.errorCode !== 2) {
-	    // We didn't hit the error above, but pattern didn't match
-	    common.error('', { silent: true });
-	  }
-	  return `${grep.join('\n')}\n`;
+		common.register('grep', 
+		_grep,
+			{
+			globStart: 2, // don't glob-expand the regex
+			canReceivePipe: true,
+			cmdOptions: {
+				'v': 'inverse',
+				'l': 'nameOnly',
+				'i': 'ignoreCase',
+				'n': 'lineNumber',
+			},
+			}
+		);
+
+	
+
+		if (grep.length === 0 && common.state.errorCode !== 2) {
+			// We didn't hit the error above, but pattern didn't match
+			common.error('', { silent: true });
+			}
+	  	return `${grep.join('\n')}\n`;
 	}
 	grep = _grep;
 	return grep;
@@ -5168,8 +5164,8 @@ let hasRequiredHead;
 function requireHead () {
 	if (hasRequiredHead) return head;
 	hasRequiredHead = 1;
-	const common = requireCommon();
-	const fs = require$$1;
+	const common = requireCommonExports();
+	
 
 	common.register('head', _head, {
 	  canReceivePipe: true,
@@ -5285,9 +5281,9 @@ let hasRequiredLn;
 function requireLn () {
 	if (hasRequiredLn) return ln;
 	hasRequiredLn = 1;
-	const fs = require$$1;
-	const path = require$$2;
-	const common = requireCommon();
+	
+	
+	const common = requireCommonExports();
 
 	common.register('ln', _ln, {
 	  cmdOptions: {
@@ -5370,9 +5366,9 @@ let hasRequiredMkdir;
 function requireMkdir () {
 	if (hasRequiredMkdir) return mkdir;
 	hasRequiredMkdir = 1;
-	const common = requireCommon();
-	const fs = require$$1;
-	const path = require$$2;
+	const common = requireCommonExports();
+	
+	
 
 	common.register('mkdir', _mkdir, {
 	  cmdOptions: {
@@ -5482,8 +5478,8 @@ let hasRequiredRm;
 function requireRm () {
 	if (hasRequiredRm) return rm;
 	hasRequiredRm = 1;
-	const common = requireCommon();
-	const fs = require$$1;
+	const common = requireCommonExports();
+	
 
 	common.register('rm', _rm, {
 	  cmdOptions: {
@@ -5693,9 +5689,9 @@ let hasRequiredMv;
 function requireMv () {
 	if (hasRequiredMv) return mv;
 	hasRequiredMv = 1;
-	const fs = require$$1;
-	const path = require$$2;
-	const common = requireCommon();
+	
+	
+	const common = requireCommonExports();
 	const cp = requireCp();
 	const rm = requireRm();
 
@@ -5822,8 +5818,8 @@ let hasRequiredSed;
 function requireSed () {
 	if (hasRequiredSed) return sed;
 	hasRequiredSed = 1;
-	const common = requireCommon();
-	const fs = require$$1;
+	const common = requireCommonExports();
+	
 
 	common.register('sed', _sed, {
 	  globStart: 3, // don't glob-expand regexes
@@ -5927,7 +5923,7 @@ let hasRequiredSet;
 function requireSet () {
 	if (hasRequiredSet) return set;
 	hasRequiredSet = 1;
-	const common = requireCommon();
+	const common = requireCommonExports();
 
 	common.register('set', _set, {
 	  allowGlobbing: false,
@@ -5992,8 +5988,8 @@ let hasRequiredSort;
 function requireSort () {
 	if (hasRequiredSort) return sort;
 	hasRequiredSort = 1;
-	const common = requireCommon();
-	const fs = require$$1;
+	const common = requireCommonExports();
+	
 
 	common.register('sort', _sort, {
 	  canReceivePipe: true,
@@ -6100,8 +6096,8 @@ let hasRequiredTail;
 function requireTail () {
 	if (hasRequiredTail) return tail;
 	hasRequiredTail = 1;
-	const common = requireCommon();
-	const fs = require$$1;
+	const common = requireCommonExports();
+	
 
 	common.register('tail', _tail, {
 	  canReceivePipe: true,
@@ -6200,8 +6196,8 @@ let hasRequiredTest;
 function requireTest () {
 	if (hasRequiredTest) return test;
 	hasRequiredTest = 1;
-	const common = requireCommon();
-	const fs = require$$1;
+	const common = requireCommonExports();
+	
 
 	common.register('test', _test, {
 	  cmdOptions: {
@@ -6296,9 +6292,9 @@ let hasRequiredTo;
 function requireTo () {
 	if (hasRequiredTo) return to;
 	hasRequiredTo = 1;
-	const common = requireCommon();
-	const fs = require$$1;
-	const path = require$$2;
+	const common = requireCommonExports();
+	
+	
 
 	common.register('to', _to, {
 	  pipeOnly: true,
@@ -6344,9 +6340,9 @@ let hasRequiredToEnd;
 function requireToEnd () {
 	if (hasRequiredToEnd) return toEnd;
 	hasRequiredToEnd = 1;
-	const common = requireCommon();
-	const fs = require$$1;
-	const path = require$$2;
+	const common = requireCommonExports();
+	
+	
 
 	common.register('toEnd', _toEnd, {
 	  pipeOnly: true,
@@ -6391,8 +6387,8 @@ let hasRequiredTouch;
 function requireTouch () {
 	if (hasRequiredTouch) return touch;
 	hasRequiredTouch = 1;
-	const common = requireCommon();
-	const fs = require$$1;
+	const common = requireCommonExports();
+	
 
 	common.register('touch', _touch, {
 	  cmdOptions: {
@@ -6516,8 +6512,8 @@ let hasRequiredUniq;
 function requireUniq () {
 	if (hasRequiredUniq) return uniq;
 	hasRequiredUniq = 1;
-	const common = requireCommon();
-	const fs = require$$1;
+	const common = requireCommonExports();
+	
 
 	// add c spaces to the left of str
 	function lpad(c, str) {
@@ -6619,9 +6615,9 @@ let hasRequiredWhich;
 function requireWhich () {
 	if (hasRequiredWhich) return which;
 	hasRequiredWhich = 1;
-	const common = requireCommon();
-	const fs = require$$1;
-	const path = require$$2;
+	const common = requireCommonExports();
+	
+	
 
 	common.register('which', _which, {
 	  allowGlobbing: false,
@@ -6749,7 +6745,7 @@ let hasRequired_register;
 function require_register () {
 	if (hasRequired_register) return _register;
 	hasRequired_register = 1;
-	const { DEFAULT_WRAP_OPTIONS, shell, shellMethods, wrap, pipeMethods } = requireCommon();
+	const { DEFAULT_WRAP_OPTIONS, shell, shellMethods, wrap, pipeMethods } = requireCommonExports();
 
 	// Register a new ShellJS command
 	function _register$1(name, implementation, wrapOptions = {}) {
@@ -6786,9 +6782,9 @@ function require_register () {
 }
 
 let hasRequiredCommon;
-
+// common$2 === exports of common.js
 // ==> Common () {
-function requireCommon () {
+function requireCommonExports () {
 	if (hasRequiredCommon) return common$2.exports;
 	hasRequiredCommon = 1;
 	((module, exports) => {
@@ -7010,7 +7006,7 @@ function requireCommon () {
       //@ ```
 
       const os = require$$0;
-      const fs = require$$1;
+      
       const glob = requireGlob();
       const { _register } = require_register();
 
@@ -7480,7 +7476,7 @@ function requireCommon () {
 	return common$2.exports;
 }
 
-const commonExports = requireCommon();
+const commonExports = requireCommonExports();
 const common = /*@__PURE__*/getDefaultExportFromCjs(commonExports);
 export const { shell } = commonExports;
 export { common as default };
@@ -7491,3 +7487,81 @@ export const plugin = {
 	readFromPipe, // For commands with the .canReceivePipe attribute
 	register,     // For registering plugins
 } = common;
+
+
+/**
+ * replaces a lot of shit global not sure why at present
+ */
+export const globalJs = () => {
+	// code from global.js
+	/* eslint no-extend-native: 0 */
+
+	Object.assign(globalThis, shell);
+	String.prototype.to = common.wrap('to', requireTo());
+	String.prototype.toEnd = common.wrap('toEnd', requireToEnd());
+
+};
+
+/**
+ * replaces a lot of shit global not sure why at present
+ */
+export const makeJs = () => {
+	// code from make.js
+
+	globalThis.config.fatal = true;
+	globalThis.target = {};
+
+	var args = process.argv.slice(2),
+	targetArgs,
+	dashesLoc = args.indexOf('--');
+
+	// split args, everything after -- if only for targets
+	if (dashesLoc > -1) {
+	targetArgs = args.slice(dashesLoc + 1, args.length);
+	args = args.slice(0, dashesLoc);
+	}
+
+	// This ensures we only execute the script targets after the entire script has
+	// been evaluated
+	setTimeout(function() {
+	var t;
+
+	if (args.length === 1 && args[0] === '--help') {
+		console.log('Available targets:');
+		for (t in globalThis.target)
+		console.log('  ' + t);
+		return;
+	}
+
+	// Wrap targets to prevent duplicate execution
+	for (t in globalThis.target) {
+		(function(t, oldTarget){
+
+		// Wrap it
+		globalThis.target[t] = function() {
+			if (!oldTarget.done){
+			oldTarget.done = true;
+			oldTarget.result = oldTarget.apply(oldTarget, arguments);
+			}
+			return oldTarget.result;
+		};
+
+		})(t, globalThis.target[t]);
+	}
+
+	// Execute desired targets
+	if (args.length > 0) {
+		args.forEach(function(arg) {
+		if (arg in globalThis.target)
+			globalThis.target[arg](targetArgs);
+		else {
+			console.log('no such target: ' + arg);
+		}
+		});
+	} else if ('all' in globalThis.target) {
+		globalThis.target.all(targetArgs);
+	}
+
+	}, 0);
+};
+
